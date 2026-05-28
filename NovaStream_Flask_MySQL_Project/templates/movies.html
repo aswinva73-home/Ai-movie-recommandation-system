@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Movies - Streamit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Sidebar (optional: you can copy same sidebar here) -->
+    <div class="sidebar">
+
+        <h1 class="logo">Streamit</h1>
+
+        <a href="/home" class="nav-item">
+            <span>Home</span>
+        </a>
+
+        <a href="/movies" class="nav-item active">
+            <span>Movies</span>
+        </a>
+
+        <a href="/series" class="nav-item">
+            <span>Series</span>
+        </a>
+
+        <a href="/history" class="nav-item">
+            <span>History</span>
+        </a>
+
+    </div>
+
+    <div class="genre-bar">
+
+        <a href="/movies" class="genre-btn">All</a>
+        <a href="/movies/Action" class="genre-btn">Action</a>
+        <a href="/movies/Comedy" class="genre-btn">Comedy</a>
+        <a href="/movies/Drama" class="genre-btn">Drama</a>
+        <a href="/movies/Romance" class="genre-btn">Romance</a>
+        <a href="/movies/Thriller" class="genre-btn">Thriller</a>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <h1 class="section-title">All Movies</h1>
+
+        <div class="movie-grid">
+
+            {% for movie in movies %}
+
+            <a href="/movie/{{ movie.title | urlencode }}" class="movie-link">
+
+                <div class="movie-card">
+
+                    <img
+                        id="poster-{{ loop.index }}"
+                        src="{{ movie.image }}"
+                        data-title="{{ movie.title }}"
+                        data-needs-fetch="{{ 'true' if movie.image == '/static/posters/default.jpg' else 'false' }}"
+                        loading="lazy"
+                        onerror="this.src='/static/posters/default.jpg'"
+                    >
+
+                    <div class="overlay">
+                        <h3>{{ movie.title }}</h3>
+                        <p>{{ movie.language }}</p>
+                    </div>
+
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <script>
+        // ── Lazy Poster Loader ──────────────────────────────────
+        // After the page is fully rendered, find all placeholder
+        // images and fetch real posters one by one without
+        // blocking the UI.
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const placeholders = document.querySelectorAll(
+                'img[data-needs-fetch="true"]'
+            );
+
+            if (placeholders.length === 0) return;
+
+            console.log(`Lazy-loading ${placeholders.length} posters...`);
+
+            // Stagger requests so we don't overwhelm the server / API
+            placeholders.forEach(function (img, index) {
+
+                setTimeout(function () {
+
+                    const title = img.dataset.title;
+
+                    fetch(`/api/poster/${encodeURIComponent(title)}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.poster && data.poster !== '/static/posters/default.jpg') {
+                                // Smooth swap
+                                img.style.opacity = '0';
+                                img.src = data.poster;
+                                img.onload = () => {
+                                    img.style.transition = 'opacity 0.4s ease';
+                                    img.style.opacity = '1';
+                                    img.dataset.needsFetch = 'false';
+                                };
+                            }
+                        })
+                        .catch(() => {/* silently keep placeholder */ });
+
+                }, index * 300); // 300ms gap between requests
+            });
+        });
+    </script>
+</body>
+
+</html>

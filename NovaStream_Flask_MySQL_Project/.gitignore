@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment — never commit this
+.env
+
+# Model files (large binaries)
+model/movies.pkl
+model/similarity.pkl
+
+# Poster cache
+poster_cache.json
+
+# VS Code
+.vscode/

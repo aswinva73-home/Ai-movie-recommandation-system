@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>History - Streamit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <h1 class="logo">Streamit</h1>
+
+        <a href="/home" class="nav-item">
+            <div class="icon-box"><i class="fa-solid fa-house"></i></div>
+            <span>Home</span>
+        </a>
+
+        <a href="/movies" class="nav-item">
+            <div class="icon-box"><i class="fa-solid fa-film"></i></div>
+            <span>Movies</span>
+        </a>
+
+        <a href="/series" class="nav-item">
+            <div class="icon-box"><i class="fa-solid fa-tv"></i></div>
+            <span>Series</span>
+        </a>
+
+        <a href="/history" class="nav-item active">
+            <div class="icon-box"><i class="fa-solid fa-clock-rotate-left"></i></div>
+            <span>History</span>
+        </a>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <div class="history-header">
+            <h1 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Watch History</h1>
+            <p>Your recently viewed movies.</p>
+        </div>
+
+        <div class="history-container">
+            {% if history %}
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Movie Title</th>
+                            <th>Date Viewed</th>
+                            <th>Time Viewed</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in history %}
+                        <tr>
+                            <td>
+                                <a href="/movie/{{ item.movie_name | urlencode }}" class="history-movie-link">
+                                    <i class="fa-solid fa-play"></i> {{ item.movie_name }}
+                                </a>
+                            </td>
+                            <td class="history-date">{{ item.viewed_date }}</td>
+                            <td class="history-time">{{ item.viewed_time }}</td>
+                            <td>
+                                <a href="/delete/{{ item.id }}" class="delete-btn" title="Remove from history">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-history">
+                    <i class="fa-solid fa-box-open"></i>
+                    <h2>Your history is empty</h2>
+                    <p>Go watch some movies to fill this up!</p>
+                    <a href="/movies" class="explore-btn">Explore Movies</a>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+</body>
+
+</html>

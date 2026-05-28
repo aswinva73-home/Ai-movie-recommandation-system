@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>{{ title }} - Streamit</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body class="details-body">
+
+    <!-- Top Navigation -->
+    <div class="details-nav">
+        <a href="/home" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+        <h1 class="logo details-logo">Streamit</h1>
+    </div>
+
+    <!-- Hero Backdrop uses the movie poster as a blurred background -->
+    <div class="hero-backdrop" style="background-image: url('{{ movie.poster }}');">
+        
+        <!-- Gradient overlay to make text readable -->
+        <div class="hero-overlay"></div>
+        
+        <div class="details-container glass-panel">
+            
+            <div class="poster-section">
+                <img
+                    src="{{ movie.poster }}"
+                    class="details-poster"
+                    data-title="{{ title }}"
+                    data-needs-fetch="{{ 'true' if movie.poster == '/static/posters/default.jpg' else 'false' }}"
+                    loading="lazy"
+                    onerror="this.src='/static/posters/default.jpg'"
+                >
+            </div>
+
+            <div class="details-content">
+                <h1 class="movie-title">{{ title }}</h1>
+
+                <div class="meta-badges">
+                    <span class="badge imdb"><i class="fa-solid fa-star"></i> {{ movie.rating }}</span>
+                    <span class="badge lang"><i class="fa-solid fa-language"></i> {{ movie.language }}</span>
+                    <span class="badge genre"><i class="fa-solid fa-film"></i> {{ movie.genre }}</span>
+                </div>
+
+                <div class="info-group">
+                    <h3>The Plot</h3>
+                    <p class="plot-text">{{ movie.plot }}</p>
+                </div>
+
+                <div class="info-group">
+                    <h3>Top Cast</h3>
+                    <p class="actors-text"><i class="fa-solid fa-user-group"></i> {{ movie.actors }}</p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="https://www.youtube.com/results?search_query={{ title | urlencode }}+official+trailer" target="_blank" style="text-decoration: none;">
+                        <button class="watch-btn"><i class="fa-solid fa-play"></i> Watch Trailer</button>
+                    </a>
+                    <button class="add-btn"><i class="fa-solid fa-plus"></i> My List</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Recommendations Section -->
+    <div class="recommendations-section">
+        <h2 class="recommend-title">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> More Like This
+        </h2>
+
+        <div class="movie-grid">
+
+            {% for rec in recommendations %}
+
+            <a href="/movie/{{ rec.title | urlencode }}" class="movie-link">
+
+                <div class="movie-card">
+
+                    <img
+                        id="poster-rec-{{ loop.index }}"
+                        src="{{ rec.image }}"
+                        data-title="{{ rec.title }}"
+                        data-needs-fetch="{{ 'true' if rec.image == '/static/posters/default.jpg' else 'false' }}"
+                        loading="lazy"
+                        onerror="this.src='/static/posters/default.jpg'"
+                    >
+
+                    <div class="overlay">
+                        <h3>{{ rec.title }}</h3>
+                    </div>
+
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <script>
+        // ── Lazy Poster Loader ──────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const placeholders = document.querySelectorAll(
+                'img[data-needs-fetch="true"]'
+            );
+
+            if (placeholders.length === 0) return;
+
+            console.log(`Lazy-loading ${placeholders.length} posters...`);
+
+            // Stagger requests so we don't overwhelm the server / API
+            placeholders.forEach(function (img, index) {
+
+                setTimeout(function () {
+
+                    const title = img.dataset.title;
+
+                    fetch(`/api/poster/${encodeURIComponent(title)}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.poster && data.poster !== '/static/posters/default.jpg') {
+                                // Smooth swap
+                                img.style.opacity = '0';
+                                img.src = data.poster;
+                                img.onload = () => {
+                                    img.style.transition = 'opacity 0.4s ease';
+                                    img.style.opacity = '1';
+                                    img.dataset.needsFetch = 'false';
+                                };
+                            }
+                        })
+                        .catch(() => {/* silently keep placeholder */ });
+
+                }, index * 300);
+            });
+        });
+    </script>
+</body>
+
+</html>

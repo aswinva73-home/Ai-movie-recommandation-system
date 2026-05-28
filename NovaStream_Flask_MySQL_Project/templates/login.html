@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Streamit - Secure Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Standalone styles for the auth page to ensure it works without modifying app.py */
+        .auth-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #020b3d, #060913);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-logo {
+            font-size: 32px;
+            color: #ff2d75;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+        }
+
+        .auth-subtitle {
+            color: #a0a5b5;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: #a0a5b5;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: #ff2d75;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .auth-btn {
+            background: linear-gradient(135deg, #ff2d75, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 45, 117, 0.4);
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #a0a5b5;
+            font-size: 14px;
+        }
+
+        .toggle-text span {
+            color: #ff2d75;
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .toggle-text span:hover {
+            color: #ff4b2b;
+        }
+
+        .error-message {
+            color: #ff4b2b;
+            background: rgba(255, 75, 43, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 75, 43, 0.2);
+        }
+        
+        .success-message {
+            color: #00e676;
+            background: rgba(0, 230, 118, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 230, 118, 0.2);
+        }
+
+        /* Hidden by default */
+        #signup-section {
+            display: none;
+        }
+    </style>
+</head>
+<body class="auth-body">
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="auth-logo">Streamit</h1>
+            <p class="auth-subtitle">AI Movie Recommendation Platform</p>
+        </div>
+
+        <!-- Notification areas -->
+        <div id="error-msg" class="error-message"></div>
+        <div id="success-msg" class="success-message"></div>
+
+        <!-- LOGIN FORM -->
+        <div id="login-section">
+            <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
+                </div>
+                <button type="submit" class="auth-btn">Sign In</button>
+            </form>
+            <p class="toggle-text">New to Streamit? <span onclick="toggleForms()">Create an account</span></p>
+        </div>
+
+        <!-- SIGNUP FORM -->
+        <div id="signup-section">
+            <form id="signup-form" class="auth-form" onsubmit="handleSignup(event)">
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="signup-name" class="auth-input" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="signup-email" class="auth-input" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="signup-password" class="auth-input" placeholder="Create Password" required minlength="6">
+                </div>
+                <button type="submit" class="auth-btn">Sign Up</button>
+            </form>
+            <p class="toggle-text">Already have an account? <span onclick="toggleForms()">Sign In</span></p>
+        </div>
+
+    </div>
+
+    <!-- Client-Side Authentication Logic -->
+    <script>
+        const loginSection = document.getElementById('login-section');
+        const signupSection = document.getElementById('signup-section');
+        const errorMsg = document.getElementById('error-msg');
+        const successMsg = document.getElementById('success-msg');
+
+        function toggleForms() {
+            if (loginSection.style.display === 'none') {
+                loginSection.style.display = 'block';
+                signupSection.style.display = 'none';
+            } else {
+                loginSection.style.display = 'none';
+                signupSection.style.display = 'block';
+            }
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            document.getElementById('login-form').reset();
+            document.getElementById('signup-form').reset();
+        }
+
+        function showMessage(msg, isError = true) {
+            if (isError) {
+                errorMsg.innerText = msg;
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+            } else {
+                successMsg.innerText = msg;
+                successMsg.style.display = 'block';
+                errorMsg.style.display = 'none';
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(data.message, false);
+                    setTimeout(() => {
+                        toggleForms();
+                        document.getElementById('login-email').value = email;
+                    }, 1500);
+                } else {
+                    showMessage(data.message);
+                }
+            } catch (err) {
+                showMessage("A network error occurred.");
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.location.href = '/home';
+                } else {
+                    showMessage(data.message);
+                }
+            } catch (err) {
+                showMessage("A network error occurred.");
+            }
+        }
+    </script>
+</body>
+</html>
